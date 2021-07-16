@@ -141,6 +141,21 @@ static int riff_fmt (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int dep
 	if ((rc = get_uint16(w->file,&w->bits_per_sample))) return rc;
 
 	clen-=16;
+
+	if (w->encoding==WAV_FMT_EXTENSIBLE){
+		uint16_t xtsize;
+
+		if (clen<10){
+			if (fseek(w->file,clen,SEEK_CUR)==-1)
+				return errno;
+		}
+		if ((rc = get_uint16(w->file,&xtsize))) return rc;
+		if ((rc = get_uint16(w->file,&w->valid_bits_per_sample))) return rc;
+		if ((rc = get_uint32(w->file,&w->channel_mask))) return rc;
+		if ((rc = get_uint16(w->file,&w->encoding))) return rc;
+		clen-=10;
+	}
+
 	if (fseek(w->file,clen,SEEK_CUR)==-1)
 		return errno;
 	return 0;
