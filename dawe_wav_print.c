@@ -11,4 +11,6 @@ void dawe_wav_print(dawe_wav_t *w)
 	printf("BITS PER SAMPLE: %d\n",w->bits_per_sample);
 	printf("CHANNELS: %d\n",w->channels);
 	printf("ENCODING: 0x%04X\n",w->encoding);
+	printf("DATA BEGINS AT: %ld\n",w->data);
+	printf("DATA LEN %d\n",w->data_len);
 }

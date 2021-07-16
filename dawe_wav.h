@@ -16,6 +16,9 @@ struct dawe_wav{
 	uint16_t channels;
 	uint16_t block_align;
 	uint16_t bits_per_sample;
+
+	long data;
+	uint32_t data_len;
 };
 typedef struct dawe_wav dawe_wav_t;
 

@@ -39,6 +39,8 @@ static int riff_print (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int d
 						   struct riff_tag *typelist);
 static int riff_fmt (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int depth,
 						   struct riff_tag *typelist);
+static int riff_data (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen,
+					 int depth,  struct riff_tag *typelist);
 
 static int get_uint32(FILE * infile, uint32_t *val){
 	uint8_t buf[4];
@@ -93,6 +95,7 @@ static struct riff_tag riff_taglist[]={
 struct riff_tag riff_wave[]={
 	{"LIST","Container",read_type,riff_wave_list},
 	{"fmt ","Format",riff_fmt,NULL},
+	{"data","Data",riff_data,NULL},
 	{NULL,NULL,NULL,NULL}
 };
 
@@ -138,6 +141,17 @@ static int riff_fmt (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int dep
 	if ((rc = get_uint16(w->file,&w->bits_per_sample))) return rc;
 
 	clen-=16;
+	if (fseek(w->file,clen,SEEK_CUR)==-1)
+		return errno;
+	return 0;
+}
+
+
+static int riff_data (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen,
+					 int depth,  struct riff_tag *typelist)
+{
+	w->data=ftell(w->file);
+	w->data_len=clen;
 	if (fseek(w->file,clen,SEEK_CUR)==-1)
 		return errno;
 	return 0;
