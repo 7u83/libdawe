@@ -45,10 +45,12 @@ static int get_uint32(FILE * infile, uint32_t *val){
 	int n;
 	n = fread(buf,4,1,infile);
 	if (n!=1) {
-		return 0;
+		if (errno)
+			return errno;
+		return DAWE_EPREMATEOF;
 	}
 	*val = buf[0]+(buf[1]<<8)+(buf[2]<<16)+(buf[3]<<24);
-	return 1;
+	return 0;
 }
 
 static int get_uint16(FILE * infile, uint16_t *val){
@@ -56,10 +58,12 @@ static int get_uint16(FILE * infile, uint16_t *val){
 	int n;
 	n = fread(buf,2,1,infile);
 	if (n!=1) {
-		return 0;
+		if (errno)
+			return errno;
+		return DAWE_EPREMATEOF;
 	}
 	*val = buf[0]+(buf[1]<<8);
-	return 1;
+	return 0;
 }
 
 struct riff_tag {
@@ -112,7 +116,6 @@ static int riff_print (dawe_wav_t * w,struct riff_tag * tag, uint32_t clen,
 {
 	char data[256];
 	fread(data,clen,1,w->file);
-	printf("FOUND: %s\n",data);
 	return 0;
 }
 
@@ -120,20 +123,23 @@ static int riff_print (dawe_wav_t * w,struct riff_tag * tag, uint32_t clen,
 static int riff_fmt (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int depth,
 						   struct riff_tag *typelist)
 {
-	uint16_t encoding,channels,block_align,bits_per_sample;
-	uint32_t sample_rate, bytes_per_second;
-	get_uint16(w->file,&encoding);
-	printf("Encoding: %04x\n",encoding);
-	get_uint16(w->file,&channels);
-	printf("Channels: %d\n",channels);
-	get_uint32(w->file,&sample_rate);
-	printf("Sample Rate: %d\n",sample_rate);
-	get_uint32(w->file,&bytes_per_second);
-	printf("bytes_per_second: %d\n",bytes_per_second);
-	get_uint16(w->file,&block_align);
-	printf("block_align: %d\n",block_align);
-	get_uint16(w->file,&bits_per_sample);
-	printf("bits_per_sample: %d\n",bits_per_sample);
+	int rc;
+
+	if (clen<16){
+		if (fseek(w->file,clen,SEEK_CUR)==-1)
+			return errno;
+	}
+
+	if ((rc = get_uint16(w->file,&w->encoding))) return rc;
+	if ((rc = get_uint16(w->file,&w->channels))) return rc;
+	if ((rc = get_uint32(w->file,&w->sample_rate))) return rc;
+	if ((rc = get_uint32(w->file,&w->bytes_per_second))) return rc;
+	if ((rc = get_uint16(w->file,&w->block_align))) return rc;
+	if ((rc = get_uint16(w->file,&w->bits_per_sample))) return rc;
+
+	clen-=16;
+	if (fseek(w->file,clen,SEEK_CUR)==-1)
+		return errno;
 	return 0;
 }
 
@@ -152,10 +158,12 @@ int read_type (dawe_wav_t * w,struct riff_tag * tag,uint32_t clen, int depth,
 
 	r = find(type_id,typelist);
 	if (r){
-		printf("Found type: %s %s\n",r->id,r->desc);
 		return r->action(w,tag,clen-4,depth+1,r->list);
 	}
-/* TODO */
+
+	if (fseek(w->file,clen-4,SEEK_CUR)==-1)
+		return errno;
+
 	return 0;
 }
 
@@ -172,6 +180,8 @@ static struct riff_tag * find(uint8_t *tag, struct riff_tag * list)
 
 static int read_chunk_header(dawe_wav_t * w, uint8_t * chunk_id, uint32_t * len)
 {
+	int rc;
+
 	/* read chunk id */
 	if ( fread(chunk_id,4,1,w->file) != 1){
 		if (errno){
@@ -181,12 +191,8 @@ static int read_chunk_header(dawe_wav_t * w, uint8_t * chunk_id, uint32_t * len)
 	}
 
 	/* read chunk length */
-	if (!get_uint32(w->file,len)){
-		if (errno){
-			return errno;
-		}
-		return DAWE_EPREMATEOF;
-	}
+	if ((rc=get_uint32(w->file,len)))
+		return rc;
 	return 0;
 }
 
@@ -204,22 +210,12 @@ static int read_chunks(dawe_wav_t *w, struct riff_tag *tag, uint32_t clen,
 		if (rc)
 			return rc;
 
-		printf("CHUNK: %c%c%c%c - (LEN: %d, CLEN: %d, DEPTH:%d)\n",
-			   chunk_id[0],
-				chunk_id[1],
-				chunk_id[2],
-				chunk_id[3],
-				len,clen,depth);
-
 		r = find (chunk_id,taglist);
 		if (!r){
-			if (depth==0)
-				return DAWE_ENOWAV;
 			if (fseek(w->file,len,SEEK_CUR)==-1)
 				return errno;
 		}
 		else{
-			printf("Found: %s %s\n",r->id,r->desc);
 			if (r->action){
 				rc = r->action(w,r,len,depth,r->list);
 				if (rc)
@@ -227,14 +223,9 @@ static int read_chunks(dawe_wav_t *w, struct riff_tag *tag, uint32_t clen,
 			}
 		}
 
-		if (depth>0){
-			clen -= (len+8);
-			if (clen<=0)
-				return 0;
-		}
-
-
-
+		clen -= (len+8);
+		if (clen<=0)
+			return 0;
 	}
 	return 0;
 }
@@ -274,6 +265,8 @@ void dawe_wav_close(dawe_wav_t *w)
 {
 	if (w->file)
 		fclose(w->file);
+	if (w->filename)
+		free(w->filename);
 	free(w);
 }
 
@@ -297,7 +290,6 @@ dawe_wav_t * dawe_wav_open(const char * filename)
 		dawe_wav_close(w);
 		return NULL;
 	}
-/*	rc = read_chunks(w,NULL,0,0,riff_taglist);*/
 	rc = start(w);
 	if (rc){
 		dawe_wav_close(w);
