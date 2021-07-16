@@ -1,4 +1,6 @@
 Makefile
+dawe_err.c
+dawe_err.h
 dawe_wav.c
 dawe_wav.h
 sysdefs.h
