@@ -4,6 +4,8 @@ OBJS=\
      dawe_wav.o \
      wav.o \
 	 dawe_err.o \
+	 dawe_wav_print.o \
+
 
 LIBNAME=libdawe.a
 

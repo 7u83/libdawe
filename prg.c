@@ -19,6 +19,8 @@ int main(int argc, char ** argv)
 				dawe_strerror(errno));
 		return -1;
 	}
+
+	dawe_wav_print(wav);
 	dawe_wav_close(wav);
 
 	return 0;
