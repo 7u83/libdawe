@@ -2,6 +2,8 @@
 OBJS=\
      dawe.o \
      dawe_wav.o \
+     wav.o \
+	 dawe_err.o \
 
 LIBNAME=libdawe.a
 
@@ -11,6 +13,10 @@ LIBS=\
 
 .c.o: 
 	$(CC) -c $(CFLAGS) $<
+
+.cc.o:
+	$(CC) -c $(CFLAGS) $<
+
 
 $(LIBNAME): $(OBJS)
 	$(AR) rcs $(LIBNAME) $(OBJS)
