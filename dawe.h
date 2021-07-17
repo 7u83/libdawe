@@ -34,9 +34,10 @@ typedef struct dawe_sess dawe_sess_t;
  */
 struct dawe_device{
 	uint32_t latency;
-	void * data;
+	void * data;		/** private, driver specific data*/
 };
 typedef struct dawe_device dawe_device_t;
+dawe_device_t * dawe_device_create();
 
 #define frames_to_ms(sampling_rate,frames) \
 	(((float)(frames)/(float)(sampling_rate))*(float)(1000))
