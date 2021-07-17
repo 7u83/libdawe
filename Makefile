@@ -6,6 +6,7 @@ OBJS=\
 	 dawe_err.o \
 	 dawe_wav_print.o \
 	 alsa.o \
+	 dawe_device.o \
 
 
 LIBNAME=libdawe.a

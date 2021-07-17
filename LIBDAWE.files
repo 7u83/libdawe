@@ -1,6 +1,8 @@
 Makefile
 alsa.c
+dave_device.c
 dawe.h
+dawe_device.c
 dawe_err.c
 dawe_err.h
 dawe_wav.c
