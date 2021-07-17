@@ -1,8 +1,11 @@
 Makefile
+alsa.c
+dawe.h
 dawe_err.c
 dawe_err.h
 dawe_wav.c
 dawe_wav.h
 dawe_wav_print.c
+pcm.c
 sysdefs.h
 prg.c

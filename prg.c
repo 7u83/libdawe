@@ -6,6 +6,12 @@
 #include "dawe_wav.h"
 #include "dawe_err.h"
 
+void play(dawe_wav_t *wav)
+{
+	extern void play_alsa(dawe_wav_t*wav);
+	play_alsa(wav);
+}
+
 int main(int argc, char ** argv)
 {
 	dawe_wav_t *wav;
@@ -21,6 +27,9 @@ int main(int argc, char ** argv)
 	}
 
 	dawe_wav_print(wav);
+
+	play(wav);
+
 	dawe_wav_close(wav);
 
 	return 0;

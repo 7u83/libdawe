@@ -31,7 +31,7 @@
   #define inline
 #endif
 
-#include <arpa/inet.h>  
+#include <arpa/inet.h>
 
 #ifndef htole32
   #define htole32(X) (htonl(htonl(X)))

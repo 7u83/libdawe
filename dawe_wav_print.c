@@ -9,6 +9,7 @@ void dawe_wav_print(dawe_wav_t *w)
 	printf("FILE: %s\n",w->filename);
 	printf("SAMPLE RATE: %d HZ\n",w->sample_rate);
 	printf("BITS PER SAMPLE: %d\n",w->bits_per_sample);
+	printf("BYTES PER SAMPLE: %d\n",w->bytes_per_second);
 	printf("CHANNELS: %d\n",w->channels);
 	printf("ENCODING: 0x%04X\n",w->encoding);
 	printf("VALID BPS: %d\n",w->valid_bits_per_sample);
