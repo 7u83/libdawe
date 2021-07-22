@@ -5,9 +5,9 @@ dawe.h
 dawe_device.c
 dawe_err.c
 dawe_err.h
+dawe_sess.c
 dawe_wav.c
 dawe_wav.h
 dawe_wav_print.c
-pcm.c
 sysdefs.h
 prg.c

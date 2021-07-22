@@ -11,10 +11,12 @@ void play(dawe_wav_t *wav)
 	extern void play_alsa(dawe_wav_t*wav);
 	play_alsa(wav);
 }
-
+#include <pthread.h>
 int main(int argc, char ** argv)
 {
 	dawe_wav_t *wav;
+	int ret;
+	pthread_t this_thread;
 
 	if (argc<2)
 		return 1;
@@ -27,6 +29,21 @@ int main(int argc, char ** argv)
 	}
 
 	dawe_wav_print(wav);
+
+	this_thread = pthread_self();
+
+	/* struct sched_param is used to store the scheduling priority */
+   struct sched_param params;
+   params.sched_priority = sched_get_priority_max(SCHED_FIFO);
+
+   ret = pthread_setschedparam(this_thread, SCHED_FIFO, &params);
+   if (ret != 0) {
+
+	   printf("Unsuccessful in setting thread realtime prio\n");
+//	   return;
+   }
+
+
 
 	play(wav);
 
