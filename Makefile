@@ -7,13 +7,16 @@ OBJS=\
 	dawe_wav_print.o \
 	alsa.o \
 	dawe_device.o \
-	dawe_sess.o
+	dawe_sess.o \
+	dawe_tpool.o \
 
 LIBNAME=libdawe.a
 
 PREFIX=~
 
 LIBS=\
+	-lasound \
+	-lpthread
 
 .c.o:
 	$(CC) -c $(CFLAGS) $<
@@ -26,7 +29,7 @@ $(LIBNAME): $(OBJS)
 	$(AR) rcs $(LIBNAME) $(OBJS)
 
 prg: $(LIBNAME) prg.o
-	$(CC) $(LDFLAGS) -o prg prg.o $(LIBNAME) $(LIBS) -lasound
+	$(CC) $(LDFLAGS) -o prg prg.o $(LIBNAME) $(LIBS)
 
 example1: $(LIBNAME) example1.o
 	$(CC) -o example1 example1.o $(LIBNAME) $(LIBS)

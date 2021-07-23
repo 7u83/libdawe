@@ -5,6 +5,15 @@
 
 #include "dawe_wav.h"
 #include "dawe_err.h"
+#include "dawe_tpool.h"
+
+
+void job(void *arg)
+{
+	int i = (int)arg;
+	sleep(15);
+	printf("HELLO WORLD %d\n",i);
+}
 
 void play(dawe_wav_t *wav)
 {
@@ -40,9 +49,24 @@ int main(int argc, char ** argv)
    if (ret != 0) {
 
 	   printf("Unsuccessful in setting thread realtime prio\n");
-//	   return;
+/*	   return;*/
    }
 
+	{
+		int i;
+		dawe_tpool_t * p;
+		p=dawe_tpool_create(15);
+		printf("tppool created\n");
+		for (i=0;i<50;i++){
+			dawe_tpool_add_job(p,job,(void *)i);
+			printf("job added %d\n",i);
+
+		}
+
+
+		sleep(100);
+		exit(0);
+   }
 
 
 	play(wav);

@@ -6,6 +6,8 @@ dawe_device.c
 dawe_err.c
 dawe_err.h
 dawe_sess.c
+dawe_tpool.c
+dawe_tpool.h
 dawe_wav.c
 dawe_wav.h
 dawe_wav_print.c

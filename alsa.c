@@ -43,9 +43,10 @@ typedef struct alsa_device alsa_device_t;
 
 static int set_param(dawe_device_t * d,const char *name,void *value)
 {
+	int rc;
 	alsa_device_t *a;
 	a=(alsa_device_t*)(d->data);
-	int rc;
+
 
 	if(!strcmp(name,ALSA_PARAM_PERIODS)){
 		int val = *(int*)value;
@@ -378,7 +379,7 @@ struct dawe_device * dawe_alsa_create_device(dawe_sess_t *s,
 			return NULL;
 		}
 		printf("Got periods: %d\n",val);
-	//	return NULL;
+	/*	return NULL; */
 		}
 
 
@@ -434,7 +435,7 @@ void play_wav(dawe_device_t *d,dawe_wav_t *w)
 			/*	return NULL;*/
 		}
 		else{
-			//printf("wrote %d\n",	ws/div);
+			/*printf("wrote %d\n",	ws/div);*/
 		}
 		usleep(1);
 	}
