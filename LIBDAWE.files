@@ -11,5 +11,7 @@ dawe_tpool.h
 dawe_wav.c
 dawe_wav.h
 dawe_wav_print.c
+gpl3header.h
 sysdefs.h
 prg.c
+xxx.cpp

@@ -64,8 +64,7 @@ int main(int argc, char ** argv)
 		}
 
 
-		sleep(100);
-		exit(0);
+
    }
 
 

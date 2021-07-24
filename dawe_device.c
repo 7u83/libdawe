@@ -2,10 +2,15 @@
 #include <stdlib.h>
 
 #include "dawe.h"
+/**
+ * @file
+ *
+ */
 
 /**
  * @brief Create a new empty device
- * @return
+ * @return a pointer to the create device or NULL if device could not
+ * be created. In case failure, errno describes the error.
  */
 dawe_device_t * dawe_device_create()
 {
