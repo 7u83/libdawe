@@ -16,7 +16,9 @@
  */
 /**
  * @file
- * @brief Implementation of dawe_tool functions
+ * @brief Implementation of dawe_tpool functions
+ *
+ * Here we implement a very very very simple thread pool.
  */
 
 
@@ -28,8 +30,10 @@
 
 /**
  * @brief worker
- * @param param
- * @return
+ * @param param is a pointer to the #dawe_tpool_t object this
+ *		worker belongs to and which was created by
+ *		#dawe_tpool_create.
+ * @return the exit status of the worker thread, but it is not important.
  */
 static void * worker(void * param)
 {
@@ -49,26 +53,27 @@ static void * worker(void * param)
 
 /**
  * @brief Create a thread poll
- * @param size Number of threads to be kept ready for use.
+ * @param threads The number of threads to be kept ready for use.
  * @return Null on error
  */
-dawe_tpool_t * dawe_tpool_create(int size)
+dawe_tpool_t * dawe_tpool_create(int threads)
 {
 	dawe_tpool_t *pool;
-	int i;
 	pthread_attr_t attr;
+	int i;
 
 	pool = malloc(sizeof(dawe_tpool_t));
 	if (pool==NULL)
 		return NULL;
-	pool->threads = malloc(sizeof(pthread_t)*size);
 
 	if (sem_init(&pool->job_avail,0,0)){
+		dawe_tpool_destroy(pool);
 		printf("can't open semaphore\n");
-		return 0;
+		return NULL;
 	}
 
 	if (sem_init(&pool->job_taken,0,0)){
+		dawe_tpool_destroy(pool);
 		printf("can't open semaphore\n");
 		return 0;
 	}
@@ -77,9 +82,10 @@ dawe_tpool_t * dawe_tpool_create(int size)
 	pthread_attr_setdetachstate(&attr,PTHREAD_CREATE_DETACHED);
 
 	pool->size=0;
-	for (i=0;i<size;i++){
+	for (i=0;i<threads;i++){
+		pthread_t thread;
 
-		if (pthread_create(&pool->threads[i], &attr, worker, pool))
+		if (pthread_create(/*&pool->threads[i]*/ &thread, &attr, worker, pool))
 			continue;
 		pool->size++;
 	}
@@ -103,5 +109,29 @@ int dawe_tpool_add_job(dawe_tpool_t *pool,void (*fun)(void*), void *arg)
 	sem_post(&pool->job_avail);
 	sem_wait(&pool->job_taken);
 	return 0;
+}
+
+
+static void exit_fun(void *data)
+{
+	printf("exit thread %ld\n",pthread_self());
+	pthread_exit(0);
+}
+
+/**
+ * @brief Destroy a tpool object previously created by #dawe_tpool_create.
+ * @param p the tpool object to destroy
+ */
+void dawe_tpool_destroy(dawe_tpool_t *p)
+{
+	int i,sval;
+	for (i=0;i<p->size;i++){
+		dawe_tpool_add_job(p,exit_fun,NULL);
+	}
+	if (!sem_getvalue(&p->job_avail,&sval))
+		sem_destroy(&p->job_avail);
+	if (!sem_getvalue(&p->job_taken,&sval))
+		sem_destroy(&p->job_taken);
+	free(p);
 }
 

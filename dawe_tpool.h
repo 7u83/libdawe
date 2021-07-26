@@ -30,8 +30,6 @@ struct dawe_tpool {
 	sem_t job_taken;
 	void (*job_fun)(void*);
 	void *job_arg;
-
-	pthread_t * threads;
 };
 
 /**
@@ -43,11 +41,10 @@ struct dawe_tpool {
  * @brief dawe_tpool_t
  */
 typedef struct dawe_tpool dawe_tpool_t;
-
 dawe_tpool_t * dawe_tpool_create(int size);
+int dawe_tpool_add_job(dawe_tpool_t *pool,void (*fun)(void*), void *arg);
+void dawe_tpool_destroy(dawe_tpool_t *p);
 
 /** @} */
-
-int dawe_tpool_add_job(dawe_tpool_t *pool,void (*fun)(void*), void *arg);
 
 #endif
