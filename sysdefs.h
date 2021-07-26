@@ -1,5 +1,5 @@
-#ifndef __DEF_H
-#define __DEF_H
+#ifndef SYSDEFS_H
+#define SYSDEFS_H
 
 #if defined(__STDC__)
 # define DAWE_CVERSION 89L
@@ -21,6 +21,9 @@
 # endif
 #endif
 
+#ifndef _POSIX_C_SOURCE
+# define _POSIX_C_SOURCE 199506L
+#endif
 
 #if (DAWE_CVERSION >= 99L)
   #include <stdint.h>
