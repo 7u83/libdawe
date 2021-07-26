@@ -25,7 +25,7 @@
 #define _DAWE_H_
 
 #include "sysdefs.h"
-
+#include "dawe_tpool.h"
 
 struct dawe_bus {
 	char * name;
@@ -33,31 +33,38 @@ struct dawe_bus {
 	int latency;
 };
 
-
-
 /**
  * @brief The dawe_formats enum
  */
-enum dawe_formats {
-	DAWE_FMT_PCM=1,		/**< PCM Yea*/
+typedef enum dawe_formats {
+	DAWE_FMT_PCM=1,		/**< PCM */
 	DAWE_FMT_FLOAT=2	/**< Float !! */
-};
+} dawe_format_t;
 
+
+#define DAWE_SESS_MAX_THREADS 1
 
 /**
  * @brief The dawe_sess struct
  */
 struct dawe_sess {
-	uint16_t sampling_rate;		/**< the overall one and only
+	uint32_t sampling_rate;		/**< the overall one and only
 					     sampling rate */
 	uint16_t bits_per_sample;	/**< Bits per sample */
-	int format;			/**< Contains the format
-					     @see format */
+	int format;			/**< Contains the format, can
+					     contain one of #dawe_format */
+	dawe_tpool_t * tpool;		/**< a thread pool (#dawe_tpool)
+					     used internally by libdawe */
+
 };
 typedef struct dawe_sess dawe_sess_t;
-dawe_sess_t * dawe_sess_create(uint16_t sampling_rate,
-							   uint16_t bits_per_sample,
-							   int format);
+dawe_sess_t * dawe_sess_create(
+			uint32_t sampling_rate,
+			uint16_t bits_per_sample,
+			int format,
+			uint32_t max_threads
+		);
+void dawe_sess_destroy(dawe_sess_t * s);
 
 #define DAWE_DEVICE_ALSA 1
 #define DAWE_DEVICE_JACK 2
