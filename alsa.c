@@ -45,11 +45,15 @@ static int get_alsa_fmt(uint16_t bits,uint16_t encoding)
 	};
 	struct fmt *p = fmts;
 	do if (p->bits==bits && p->encoding==encoding)
-			return p->alsa_fmt;
+		return p->alsa_fmt;
 	while((++p)->bits);
 
 	return SND_PCM_FORMAT_UNKNOWN;
 }
+
+
+
+
 
 struct alsa_device {
 		snd_pcm_t *handle;
@@ -78,7 +82,8 @@ static int set_param(dawe_device_t * d,const char *name,void *value)
 	}
 	if(!strcmp(name,ALSA_PARAM_PERIOD_SIZE)){
 		int val = *(int*)value;
-		rc = snd_pcm_hw_params_set_period_size(a->handle,a->hwparams,val,NULL);
+		rc = snd_pcm_hw_params_set_period_size(
+					a->handle,a->hwparams,val,0);
 		goto x;
 	}
 
@@ -114,9 +119,10 @@ x:
 
 static int start(dawe_device_t * d)
 {
+	int rc;
 	alsa_device_t *a;
 	a=(alsa_device_t*)(d->data);
-	int rc;
+
 
 	rc = snd_pcm_hw_params (a->handle, a->hwparams);
 	if (rc){
@@ -205,15 +211,14 @@ struct dawe_device * dawe_alsa_create_devicex(
 	fprintf(stderr, "--------------------\n");
 
 
-	rc = snd_pcm_hw_params_set_access (a->handle, a->hwparams,
-									   SND_PCM_ACCESS_RW_INTERLEAVED);
+	rc = snd_pcm_hw_params_set_access(a->handle, a->hwparams,
+					   SND_PCM_ACCESS_MMAP_NONINTERLEAVED
+					   /*SND_PCM_ACCESS_RW_INTERLEAVED*/);
 
 	if (rc){
 		fprintf(stderr,"Can't set_access: %d %s\n",rc, snd_strerror(rc));
 		goto errX;
 	}
-
-
 
 
 	{
@@ -388,20 +393,22 @@ struct dawe_device * dawe_alsa_create_device(dawe_sess_t *s,
 
 
 	rc = snd_pcm_hw_params_set_access (a->handle, a->hwparams,
-									   SND_PCM_ACCESS_RW_INTERLEAVED);
+					SND_PCM_ACCESS_MMAP_INTERLEAVED
+					   /*SND_PCM_ACCESS_RW_INTERLEAVED*/
+					   );
 	if (rc){
 		fprintf(stderr,"Can't set_access: %d %s\n",rc, snd_strerror(rc));
 		goto errX;
 	}
 
 	{
-			unsigned int val=3;
-		rc =rc=snd_pcm_hw_params_get_period_size_min(a->hwparams,&val,0);
+		snd_pcm_uframes_t val=3;
+		rc=snd_pcm_hw_params_get_period_size_min(a->hwparams,&val,0);
 		if (rc){
 			fprintf(stderr,"Can't get periods: %d %s\n",rc, snd_strerror(rc));
 			return NULL;
 		}
-		printf("Got periods: %d\n",val);
+		printf("Got periods: %ld\n",val);
 	/*	return NULL; */
 		}
 
@@ -426,7 +433,11 @@ errX:
 }
 
 
+static write_job()
+{
 
+
+}
 
 
 void play_wav(dawe_device_t *d,dawe_wav_t *w)
@@ -460,7 +471,7 @@ void play_wav(dawe_device_t *d,dawe_wav_t *w)
 		else{
 			/*printf("wrote %d\n",	ws/div);*/
 		}
-		usleep(1);
+	/*	nanosleep(1);*/
 	}
 
 }
@@ -484,7 +495,8 @@ static void callback(snd_async_handler_t *ahandler)
 
 
 
-static void copy(dawe_device_t * din, dawe_device_t *dout)
+static void copy(dawe_sess_t *s,
+		dawe_device_t * din, dawe_device_t *dout)
 {
 #define S 4
 	uint8_t buffer[256000];
@@ -518,24 +530,22 @@ static void copy(dawe_device_t * din, dawe_device_t *dout)
 
 
 	while(1){
-		rc = snd_pcm_readi(ain->handle, buffer, 64);
+		rc = snd_pcm_mmap_readi(ain->handle, buffer, 64);
 		/*printf("Read RC: %d\n",rc);*/
 		if (rc==-11){
-				continue;
+			continue;
 		}
-
 
 		if (rc<0){
-printf("Read RC: %d %s\n",rc, snd_strerror(rc));
+			printf("Read RC: %d %s\n",rc, snd_strerror(rc));
 			/*	rc = snd_pcm_prepare (aout->handle); */
-				rc = snd_pcm_recover(ain->handle,rc,1);
-				printf("Recover RC %d\n",rc);
-
-				continue;
+			rc = snd_pcm_recover(ain->handle,rc,1);
+			printf("Recover RC %d\n",rc);
+			continue;
 		}
 
-printf("Read %d\n",rc);
-		rc = snd_pcm_writei(aout->handle, buffer, rc);
+		printf("Read %d\n",rc);
+		rc = snd_pcm_mmap_writei(aout->handle, buffer, rc);
 		/*printf("Write RC: %d\n",rc);*/
 		if (rc<0){
 			printf("prepare\n");
@@ -566,13 +576,18 @@ static int wait_for_poll(snd_pcm_t *handle, struct pollfd *ufds, unsigned int co
 
 void pollt(dawe_device_t * din, dawe_device_t *dout)
 {
+	snd_pcm_sframes_t avail;
+	const snd_pcm_channel_area_t *area;
+	snd_pcm_uframes_t frames,offset;
+
 	uint8_t buffer[65536];
 	struct pollfd *ufds;
 	alsa_device_t *ain,*aout;
 	int count,rc;
 	ain = (alsa_device_t*)(din->data);
 	aout = (alsa_device_t*)(dout->data);
-	snd_pcm_sframes_t avail;
+snd_pcm_nonblock(ain->handle,0);
+snd_pcm_nonblock(aout->handle,0);
 
 	count = snd_pcm_poll_descriptors_count (ain->handle);
 	printf("Count %d\n",count);
@@ -593,37 +608,66 @@ void pollt(dawe_device_t * din, dawe_device_t *dout)
 		fprintf(stderr,"Can't prepare ain: %d %s\n",rc, snd_strerror(rc));
 		return;
 	}
+	rc = snd_pcm_prepare (aout->handle);
+	if (rc){
+		fprintf(stderr,"Can't prepare ain: %d %s\n",rc, snd_strerror(rc));
+		return;
+	}
 
 
-	rc = snd_pcm_readi(ain->handle, buffer, 64);
+/*	rc = snd_pcm_mmap_readi(ain->handle, buffer, 64);*/
+
+	snd_pcm_start(ain->handle);
 	if (rc < 0) {
 		printf("Read Fail %d: %s\n",rc,snd_strerror(rc));
 	}
-while(1){
-	wait_for_poll(ain->handle,ufds,1);
-	avail = snd_pcm_avail_update(ain->handle);
+	while(1){
+		int i;
+		wait_for_poll(ain->handle,ufds,1);
+		avail = snd_pcm_avail_update(ain->handle);
 
-	if (avail<0){
-	printf("Frames avail err: %d %s\n",avail,snd_strerror(avail));
+		if (avail<0){
+			printf("Frames avail err: %ld %s\n",avail,snd_strerror(avail));
+			exit(0);
+		}
+
+		printf("Frames avail: %ld\n",avail);
+		rc = snd_pcm_mmap_readi(ain->handle, buffer, avail);
+		if (rc<0){
+			printf("mmap readi error %d\n",rc);
+			continue;
+		}
 	}
-	else{
-		printf("Frames avail: %d\n",avail);
-		rc = snd_pcm_readi(ain->handle, buffer, avail);
-		if (rc < 0) {
-			printf("Read Fail %d: %s",rc,snd_strerror(rc));
+
+/*		frames = 1024;
+		offset=0;
+		rc = snd_pcm_mmap_begin(ain->handle,&area,&offset,&frames);
+		for (i=0; i<2;i++){
+			printf("A: addr: %p, first: %d, step %d, offset: %ld, frames %ld, rc: %d\n",
+			      area[i].addr, area[i].first, area[i].step, offset, frames, rc);
+		}
+*/
+
+/*		if (rc < 0) {
+
+			printf("Commit Fail %d: %s",rc,snd_strerror(rc));
+			exit(0);
 		}
 		else{
-			printf("Got %d frames\n",rc);
-			usleep(10000);
-		}
+			rc = snd_pcm_mmap_writei(
+				aout->handle,(uint8_t*)(area[0].addr)+
+					((area->first+offset*area->step)>>3),frames);
+			printf("mmap writei %d\n",rc);
+			if(rc<0)
+				exit(0);
 
-	}
-}
-	exit(0);
-	if (count <= 0) {
-		printf("Invalid poll descriptors count\n");
-		return count;
-	}
+			rc = snd_pcm_mmap_commit(ain->handle,offset,frames);
+
+			printf("mmap commit rc %d\n",rc);
+			printf("Got %d frames\n",rc);
+*/
+
+
 
 
 }
@@ -644,8 +688,7 @@ void play_alsa(dawe_wav_t *w)
 	card_out = "hw:A96";
 /*card_in = card_out = "sysdefault";
 */
-	s=dawe_sess_create(w->sample_rate,w->bits_per_sample,w->encoding);
-
+	s=dawe_sess_create(w->sample_rate,w->bits_per_sample,w->encoding,64);
 
 /*	int mode = SND_PCM_STREAM_PLAYBACK; *//*| SND_PCM_STREAM_CAPTURE*/;
 	dout = dawe_alsa_create_device(s,card_out,SND_PCM_STREAM_PLAYBACK,0);
@@ -655,9 +698,9 @@ void play_alsa(dawe_wav_t *w)
 
 
 	printf("period out\n");
-	val=2;
+	val=4;
 	dout->set_param(dout,ALSA_PARAM_PERIODS,&val);
-	val=512;
+	val=32;
 	dout->set_param(dout,ALSA_PARAM_PERIOD_SIZE,&val);
 	val=w->channels;
 	dout->set_param(dout,ALSA_PARAM_CHANNELS,&val);
@@ -672,7 +715,7 @@ void play_alsa(dawe_wav_t *w)
 	exit(0);
 */
 	din = dawe_alsa_create_device(s,card_in,SND_PCM_STREAM_CAPTURE,
-								 SND_PCM_NONBLOCK);
+						0 /* SND_PCM_NONBLOCK*/);
 
 	if (!din){
 		printf("No input working\n");
@@ -681,9 +724,9 @@ void play_alsa(dawe_wav_t *w)
 
 	printf("period in\n");
 
-	val=512;
+	val=3;
 	din->set_param(din,ALSA_PARAM_PERIODS,&val);
-	val=16;
+	val=8;
 	din->set_param(din,ALSA_PARAM_PERIOD_SIZE,&val);
 	val=w->channels;
 	din->set_param(din,ALSA_PARAM_CHANNELS,&val);
@@ -699,9 +742,9 @@ void play_alsa(dawe_wav_t *w)
 /*	val = 128;
 	dout ->set_param(dout,ALSA_PARAM_START_THRESHOLD,&val);
 */
-	pollt(din,dout);
+	/*pollt(din,dout);*/
 
-	copy (din,dout);
+	copy (s,din,dout);
 	return;
 	play_wav(dout,w);
 

@@ -8,6 +8,8 @@ OBJS=\
 	dawe_device.o \
 	dawe_sess.o \
 	dawe_tpool.o \
+	dawe_buffer.o \
+
 
 LIBNAME=libdawe.a
 

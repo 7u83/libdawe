@@ -27,18 +27,16 @@
 #include "sysdefs.h"
 #include "dawe_tpool.h"
 
-struct dawe_bus {
-	char * name;
-	int channels;
-	int latency;
-};
+
 
 /**
  * @brief The dawe_formats enum
  */
 typedef enum dawe_formats {
-	DAWE_FMT_PCM=1,		/**< PCM */
-	DAWE_FMT_FLOAT=2	/**< Float !! */
+	DAWE_FMT_PCM=1,			/**< PCM */
+	DAWE_FMT_FLOAT=2,		/**< Float */
+	DAWE_FMT_INTERLEAVED=0,		/**< Interleaved */
+	DAWE_FMT_NON_INTERLEAVED=4	/**< Non-interleaved */
 } dawe_format_t;
 
 
@@ -73,6 +71,15 @@ struct dawe_device_param{
 	const char * name;
 };
 
+
+typedef struct dawe_bus{
+	int channels;
+	int frames;
+	int step;
+	uint8_t **data;
+} dawe_bus_t;
+
+
 /**
  * @brief The dawe_device struct
  */
@@ -83,8 +90,17 @@ struct dawe_device{
 	int (*set_param)( struct dawe_device * d, const char *name, void *val);
 	int (*start)(struct dawe_device *d);
 
-	void * data;		/** private, driver specific data*/
+	void * data;		/**< private, driver specific data*/
+	dawe_bus_t ** inputs;
+	dawe_bus_t ** outputs;
 };
+
+
+
+typedef struct dawe_bus dawe_buffer_t;
+typedef enum dawe_x{
+	DAWE_INT
+} dawe_x_t;
 
 typedef struct dawe_device dawe_device_t;
 dawe_device_t * dawe_device_create();

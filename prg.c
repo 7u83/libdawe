@@ -11,7 +11,7 @@
 void job(void *arg)
 {
 	int i = (int)arg;
-	sleep(15);
+	sleep(1);
 	printf("HELLO WORLD %d\n",i);
 }
 
@@ -55,7 +55,7 @@ int main(int argc, char ** argv)
 	{
 		int i;
 		dawe_tpool_t * p;
-		p=dawe_tpool_create(15);
+		p=dawe_tpool_create(215);
 		printf("tppool created\n");
 		for (i=0;i<50;i++){
 			dawe_tpool_add_job(p,job,(void *)i);
