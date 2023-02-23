@@ -83,7 +83,7 @@ typedef struct dawe_bus{
 /**
  * @brief The dawe_device struct
  */
-struct dawe_device{
+typedef struct dawe_device{
 	int type;
 	int dir;
 	uint32_t latency;
@@ -93,16 +93,15 @@ struct dawe_device{
 	void * data;		/**< private, driver specific data*/
 	dawe_bus_t ** inputs;
 	dawe_bus_t ** outputs;
-};
+} dawe_device_t;
 
 
 
-typedef struct dawe_bus dawe_buffer_t;
+
 typedef enum dawe_x{
 	DAWE_INT
 } dawe_x_t;
 
-typedef struct dawe_device dawe_device_t;
 dawe_device_t * dawe_device_create();
 
 void dawe_device_destroy(dawe_device_t * d);

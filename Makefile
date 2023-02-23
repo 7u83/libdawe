@@ -4,12 +4,12 @@ OBJS=\
 	dawe_wav.o \
 	dawe_err.o \
 	dawe_wav_print.o \
-	alsa.o \
 	dawe_device.o \
 	dawe_sess.o \
 	dawe_tpool.o \
 	dawe_buffer.o \
-
+	dawe_device_reformat.o \
+	alsa.o 
 
 LIBNAME=libdawe.a
 
@@ -38,7 +38,9 @@ example1: $(LIBNAME) example1.o
 example2: $(LIBNAME) example2.o
 	$(CC) -o example2 example2.o $(LIBNAME) $(LIBS)
 
-
+all:
+	make prg
+	
 #CFLAGS=-fsanitize=address -fno-omit-frame-pointer -g -O0 -Wall
 
 clean:

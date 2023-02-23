@@ -4,6 +4,7 @@ dave_device.c
 dawe.h
 dawe_buffer.c
 dawe_device.c
+dawe_device_reformat.c
 dawe_err.c
 dawe_err.h
 dawe_sess.c

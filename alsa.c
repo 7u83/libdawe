@@ -393,8 +393,8 @@ struct dawe_device * dawe_alsa_create_device(dawe_sess_t *s,
 
 
 	rc = snd_pcm_hw_params_set_access (a->handle, a->hwparams,
-					SND_PCM_ACCESS_MMAP_INTERLEAVED
-					   /*SND_PCM_ACCESS_RW_INTERLEAVED*/
+					/*SND_PCM_ACCESS_MMAP_INTERLEAVED*/
+					   SND_PCM_ACCESS_RW_INTERLEAVED
 					   );
 	if (rc){
 		fprintf(stderr,"Can't set_access: %d %s\n",rc, snd_strerror(rc));
@@ -686,8 +686,8 @@ void play_alsa(dawe_wav_t *w)
 
 	card_in = "hw:A96";
 	card_out = "hw:A96";
-/*card_in = card_out = "sysdefault";
-*/
+card_in = card_out = "default";
+
 	s=dawe_sess_create(w->sample_rate,w->bits_per_sample,w->encoding,64);
 
 /*	int mode = SND_PCM_STREAM_PLAYBACK; *//*| SND_PCM_STREAM_CAPTURE*/;
@@ -698,7 +698,7 @@ void play_alsa(dawe_wav_t *w)
 
 
 	printf("period out\n");
-	val=4;
+	val=1024;
 	dout->set_param(dout,ALSA_PARAM_PERIODS,&val);
 	val=32;
 	dout->set_param(dout,ALSA_PARAM_PERIOD_SIZE,&val);
@@ -724,9 +724,9 @@ void play_alsa(dawe_wav_t *w)
 
 	printf("period in\n");
 
-	val=3;
+	val=4;
 	din->set_param(din,ALSA_PARAM_PERIODS,&val);
-	val=8;
+	val=32;
 	din->set_param(din,ALSA_PARAM_PERIOD_SIZE,&val);
 	val=w->channels;
 	din->set_param(din,ALSA_PARAM_CHANNELS,&val);

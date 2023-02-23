@@ -15,31 +15,12 @@
  * along with this program.  If not, see http://www.gnu.org/licenses.
  */
 
-#include <malloc.h>
-
 #include "dawe.h"
 
-dawe_bus_t * dawe_buffer_create(int channels){
-	dawe_bus_t *b;
-	b=malloc(sizeof(dawe_bus_t));
-	if(!b)
-		return NULL;
-	b->data=malloc(sizeof(uint8_t*)*channels);
-	if (!b->data){
-		free(b);
-		return NULL;
-	}
-	b->data[0]=NULL;
-	b->channels=channels;
-	return b;
+dawe_device_t * dawe_dev_reformat_create()
+{
+	dawe_device_t *d = dawe_device_create();
+	return d;
 }
 
-uint8_t *
-dawe_buffer_init(dawe_bus_t * b,int frames, int frame_size)
-{
-	b->data[0]=malloc(frames*frame_size*b->channels);
-	if (b->data[0])
-		return NULL;
-	return b->data[0];
-}
 

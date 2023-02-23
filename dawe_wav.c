@@ -229,7 +229,7 @@ static int read_chunks(dawe_wav_t *w, struct riff_tag *tag, uint32_t clen,
 					   int depth,struct riff_tag * taglist)
 {
 	uint8_t chunk_id[4];
-	uint32_t len;
+	uint32_t len=0;
 	int rc;
 
 	struct riff_tag * r;
