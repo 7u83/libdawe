@@ -198,6 +198,8 @@ struct dawe_device * dawe_alsa_create_devicex(
 		goto errX;
 	}
 
+
+
 	rc = snd_output_stdio_attach(&log, stdout, 0);
 	if (rc){
 		fprintf(stderr,"output stdio attach: %d %s\n",rc, snd_strerror(rc));
@@ -376,21 +378,43 @@ struct dawe_device * dawe_alsa_create_device(dawe_sess_t *s,
 
 
 	rc = snd_pcm_hw_params_set_format (a->handle, a->hwparams,
-									   get_alsa_fmt(s->bits_per_sample,
-													s->format)
-									   );
+					   get_alsa_fmt(s->bits_per_sample,
+							s->format));
 	if (rc){
-		fprintf(stderr,"Can't set xformat: %d %s\n",rc, snd_strerror(rc));
+		fprintf(stderr,"Can't set xformat: %d %s\n", rc, snd_strerror(rc));
 		return NULL;
 	}
 
+	dump(d);
+
+
 	rrate = s->sampling_rate;
-	rc = snd_pcm_hw_params_set_rate_near (a->handle, a->hwparams, &rrate, NULL);
+/*	rc = snd_pcm_hw_params_set_rate_near (a->handle, a->hwparams, &rrate, NULL);
 	if (rc){
 		fprintf(stderr,"Can't set sampla rate: %d %s\n",rc, snd_strerror(rc));
 		return NULL;
 	}
 
+
+	printf ("Set Sample RET: %d\n",rrate);
+*/
+
+
+	unsigned int rval;
+	int rdir;
+	rc = snd_pcm_hw_params_get_rate(a->hwparams, &rval, &rdir);
+	if (rc){
+		fprintf(stderr,"Can't get_rate: %d %s\n",rc, snd_strerror(rc));
+	/*	goto errX;*/
+	}
+	printf("RATE ANd DIR: %d %d\n",rval,rdir);
+
+	rc = snd_pcm_hw_params_get_rate_max(a->hwparams, &rval, &rdir);
+	if (rc){
+		fprintf(stderr,"Can't get_rate: %d %s\n",rc, snd_strerror(rc));
+		goto errX;
+	}
+	printf("RAT$E MAX: %d %d\n",rval,rdir);
 
 	rc = snd_pcm_hw_params_set_access (a->handle, a->hwparams,
 					/*SND_PCM_ACCESS_MMAP_INTERLEAVED*/
@@ -688,10 +712,10 @@ void play_alsa(dawe_wav_t *w)
 	card_out = "hw:A96";
 card_in = card_out = "default";
 
-	s=dawe_sess_create(w->sample_rate,w->bits_per_sample,w->encoding,64);
+	s=dawe_sess_create(1234400,w->bits_per_sample,w->encoding,64);
 
 /*	int mode = SND_PCM_STREAM_PLAYBACK; *//*| SND_PCM_STREAM_CAPTURE*/;
-	dout = dawe_alsa_create_device(s,card_out,SND_PCM_STREAM_PLAYBACK,0);
+/*	dout = dawe_alsa_create_device(s,card_out,SND_PCM_STREAM_PLAYBACK,0);
 	if (!dout){
 		return;
 	}
@@ -709,7 +733,7 @@ card_in = card_out = "default";
 	dout ->set_param(dout,ALSA_PARAM_START_THRESHOLD,&val);
 	dump(dout);
 
-
+*/
 
 	/*play_wav(dout,w);
 	exit(0);

@@ -1,17 +1,42 @@
+include defs.mak
+MFDEPS=defs.mak
 
-OBJS=\
-	dawe.o \
-	dawe_wav.o \
-	dawe_err.o \
-	dawe_wav_print.o \
-	dawe_device.o \
-	dawe_sess.o \
-	dawe_tpool.o \
-	dawe_buffer.o \
-	dawe_device_reformat.o \
-	alsa.o 
+CXXFLAGS$(CXXFLAGS):=-std=c++98 -g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra
+CFLAGS$(CFLAGS):=-std=c89 -g -O0 -fsanitize=address -fno-omit-frame-pointer -Wall -Wextra
+LDFLAGS$(LDFLAGS):=-fsanitize=address
+BUILD$(BUILD):= debug
+BINDIR$(BINDIR):= ./$(BUILD)
+LIBDIR$(LIBDIR):= ./$(BUILD)/lib
+OBJDIR$(OBJDIR):= ./$(BUILD)/obj
 
-LIBNAME=libdawe.a
+
+EXEFILE:= $(BINDIR)/play
+
+CSRC=\
+	dawe.c \
+	dawe_wav.c \
+	dawe_err.c \
+	dawe_wav_print.c \
+	dawe_device.c \
+	dawe_sess.c \
+	dawe_tpool.c \
+	dawe_buffer.c \
+	dawe_device_reformat.c \
+	alsa.c
+	
+CXXSRC=\
+	DaweException.cc \
+	drv/DaweAlsaDevice.cc \
+	DaweSess.cc \
+	DawePort.cc \
+	DaweBus.cc \
+	DaweDevice.cc \
+#	drv/DaweAlsa.cc
+	
+#LIBARCHDIR      := $(LIBDIR)/$(KERNEL)/$(ARCH)
+
+SNAME           := $(LIBDIR)/libdawe.a
+DNAME           := $(LIBDIR)/libdawe.so
 
 PREFIX=~
 
@@ -19,46 +44,52 @@ LIBS=\
 	-lasound \
 	-lpthread
 
-.c.o:
-	$(CC) -c $(CFLAGS) $<
+#.c.o:
+#	$(CC) -c $(CFLAGS) $<
 
-.cc.o:
-	$(CC) -c $(CFLAGS) $<
+#.cc.o:
+#	$(CC) -c $(CXXFLAGS) $<
 
 
-$(LIBNAME): $(OBJS)
-	$(AR) rcs $(LIBNAME) $(OBJS)
 
-prg: $(LIBNAME) prg.o
-	$(CC) $(LDFLAGS) -o prg prg.o $(LIBNAME) $(LIBS)
 
-example1: $(LIBNAME) example1.o
-	$(CC) -o example1 example1.o $(LIBNAME) $(LIBS)
+#example1: $(LIBNAME) example1.o
+#	$(CC) -o example1 example1.o $(LIBNAME) $(LIBS)
 
-example2: $(LIBNAME) example2.o
-	$(CC) -o example2 example2.o $(LIBNAME) $(LIBS)
+#example2: $(LIBNAME) example2.o
+#	$(CC) -o example2 example2.o $(LIBNAME) $(LIBS)
+	
+#test1: test.o
+#	$(CC) -o test1 test.o 
 
-all:
-	make prg
+#all:
+#	make $(ANAME)
+	
 	
 #CFLAGS=-fsanitize=address -fno-omit-frame-pointer -g -O0 -Wall
 
-clean:
-	rm -f $(OBJS)
-	rm -f $(LIBNAME)
-	rm -f example1.o example1
-	rm -f example2.o example2
-	rm -f mavtest mavtest.o
-	rm -f prg prg.o
-	rm -f *.core
-	rm -f test.o test
 
-install: $(LIBNAME)
-	mkdir -p $(PREFIX)/lib
-	mkdir -p $(PREFIX)/include/libmavl
-	install -p $(LIBNAME) $(PREFIX)/lib/$(LIBNAME)
-	install -p mavl.h $(PREFIX)/include/libmavl/mavl.h
+$(EXEFILE): play.cc $(SNAME)
+	$(CXX) $(CXXFLAGS) play.cc -o $(EXEFILE) $(SNAME) $(LDFLAGS) -lasound
+	
 
-test: $(LIBNAME) test.o
-	$(CC) $(LDFLAGS) -o test  test.o $(LIBNAME) -lmutests
+rel:
+	$(MAKE) BUILD=release CFLAGS='-O3 -Wall' CXXFLAGS='-O3 -Wall' 
+
+rel-clean:
+	$(MAKE) BUILD=release clean
+
+
+	
+include lib.mak
+
+clean::
+	rm -f $(EXEFILE)
+
+clean-all:
+	$(MAKE) clean
+	rm -rf html
+	rm -rf latex
+	rm -rf man
+
 
