@@ -56,7 +56,7 @@ int main(int argc, char ** argv)
 		int i;
 		dawe_tpool_t * p;
 		p=dawe_tpool_create(215);
-		printf("tppool created\n");
+		printf("tpool created\n");
 		for (i=0;i<50;i++){
 			dawe_tpool_add_job(p,job,(void *)i);
 			printf("job added %d\n",i);

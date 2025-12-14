@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  7u83 <7u83@mail.ru>
+ * Copyright (C) 2023 7u83 <7u83@mail.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,27 +14,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  */
-#ifndef DAWEXCEPTION_H
-#define DAWEXCEPTION_H
-
-#include <stdarg.h>
-#include <iostream>
-
-class DaweException : public std::exception
-{
-public:
-	DaweException(int code,const char *str);
-	DaweException(const char * format, ...);
-
-	int code;
-	const char *str;
-	virtual const char* what() const throw();
-	char buffer[256];
-};
-
-#define DAWE_EXCEPTION(format,...)\
-	throw DaweException(format,##__VA_ARGS__)
+#include "MidiEventQueue.h"
 
 
-#endif // DAWEXCEPTION_H
+namespace Dawe {
 
+
+
+} // namespace Dawe

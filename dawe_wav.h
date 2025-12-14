@@ -2,6 +2,10 @@
 #ifndef _DAWE_WAV_H
 #define _DAWE_WAV_H
 
+#ifdef __cplusplus
+ extern "C" {
+#endif
+
 #include <stdio.h>
 
 #include "sysdefs.h"
@@ -33,6 +37,10 @@ extern void dawe_wav_print(dawe_wav_t *w);
 #define WAV_FMT_PCM             0x0001
 #define WAV_FMT_IEEE_FLOAT      0x0003
 #define WAV_FMT_EXTENSIBLE      0xfffe
+
+#ifdef __cplusplus
+ }
+#endif
 
 
 #endif

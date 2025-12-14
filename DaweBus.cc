@@ -18,6 +18,6 @@
 
 DaweBus::DaweBus()
 {
-	this->channels=0;
-	this->frames=0;
+    this->channels=0;
+    this->frames=0;
 }

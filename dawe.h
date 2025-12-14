@@ -25,9 +25,27 @@
 #define _DAWE_H_
 
 #include "sysdefs.h"
+
+namespace Dawe {
+///
+/// \brief miditick_T
+///
+/// used for something
+///
+typedef uint32_t miditick_T;	/**< Used to describe a midi tick position */
+typedef uint32_t nmiditicks_T;	///< Used to describe a number of midi ticks
+typedef uint32_t nframes_T;	///< Describes a number of frames
+typedef uint32_t miditempo_T;	///< Describes a tempo
+
+const int MIDI_TIME_DIVISION = 960;  ///< default ticks per beat
+const miditempo_T MIDI_DEFAULT_TEMPO = 500000;
+
+}
+
+
 #include "dawe_tpool.h"
 
-
+//#define Dawe dawe
 
 /**
  * @brief The dawe_formats enum
@@ -98,9 +116,7 @@ typedef struct dawe_device{
 
 
 
-typedef enum dawe_x{
-	DAWE_INT
-} dawe_x_t;
+
 
 dawe_device_t * dawe_device_create();
 

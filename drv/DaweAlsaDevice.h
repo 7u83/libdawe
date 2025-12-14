@@ -21,19 +21,33 @@ extern "C" {
 #include <alsa/asoundlib.h>
 }
 
-#include "../DaweDevice.h"
+#include "../Device.h"
+#include "../Session.h"
 
-class DaweAlsaDevice : public DaweDevice
+#include "../dawe.h"
+namespace Dawe{
+
+static const snd_pcm_format_t  pcm_formats[] = {
+	SND_PCM_FORMAT_FLOAT,
+	SND_PCM_FORMAT_LAST
+};
+
+class DaweAlsaDevice : public Device
 {
+
 public:
-	DaweAlsaDevice(const char * name);
+	DaweAlsaDevice(Session *sess,const char * name);
 	~DaweAlsaDevice();
 	void print_info();
-private:
-	snd_pcm_t *pcm_handle;
-	snd_pcm_sw_params_t *swparams;
+	void run();
 
-	unsigned int pcm_channles;
+private:
+	void set_hw_params();
+
+	snd_pcm_t *pcm_handle;
+//	snd_pcm_sw_params_t *swparams;
+
+//	unsigned int pcm_channles;
 
 	void setup();
 	const char * device_name;
@@ -46,6 +60,10 @@ private:
 	bool pcm_mmap_complex;
 	bool pcm_interleaved,pcm_noninterleaved;
 
+	Session * sess;
+
 };
+
+} // namespace
 
 #endif // DAWEALSADEVICE_H

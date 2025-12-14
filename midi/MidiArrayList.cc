@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2021  7u83 <7u83@mail.ru>
+ * Copyright (C) 2023 7u83 <7u83@mail.ru>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,27 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see http://www.gnu.org/licenses.
  */
+#include "MidiArrayList.h"
 
-#include <stdio.h>
-#include <stdarg.h>
+namespace Dawe {
 
-#include "DaweException.h"
-
-DaweException::DaweException(int code,const char *str)
+MidiArrayList::MidiArrayList()
 {
-	this->code=code;
-	this->str=str;
+
 }
 
-const char* DaweException::what() const throw()
-{
-	return this->buffer;
-}
-
-DaweException::DaweException(const char * format, ...)
-{
-	va_list args;
-	va_start (args, format);
-	vsnprintf (buffer,256,format, args);
-		va_end (args);
-}
+} // namespace Dawe
